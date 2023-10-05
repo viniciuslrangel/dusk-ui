@@ -1,0 +1,8 @@
+[package]
+name = "dusk-ui"
+version = "0.1.0"
+edition = "2021"
+authors = ["Vinicius Rangel <me@viniciusrangel.dev>"]
+license = "ISC"
+
+[dependencies]
