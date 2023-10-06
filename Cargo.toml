@@ -1,9 +1,13 @@
 [package]
-name = "dusk-ui"
-version = "0.1.0"
 edition = "2021"
+name = "dusk-ui"
+description = "Discord UI framework for interact message using twilight API."
 authors = ["Vinicius Rangel <me@viniciusrangel.dev>"]
+version = "0.1.0"
 license = "ISC"
+repository = "https://github.com/viniciuslrangel/dusk-ui"
+keywords = ["discord", "discord-api", "twilight", "dusk"]
+publish = true
 
 [dependencies]
 dashmap = "5.5"
