@@ -7,7 +7,7 @@ use twilight_model::http::interaction::{
     InteractionResponse, InteractionResponseData, InteractionResponseType,
 };
 
-use crate::component::row::Row;
+use crate::component::CompWindow;
 use crate::context::{Context, ContextPrefix};
 use crate::dusk::Dusk;
 
@@ -19,19 +19,17 @@ where
     render_text(data).into()
 }
 
-fn draw_components<D, FC, FCR>(
+fn draw_components<D, FC>(
     ctx: &Context<D>,
     data: &D,
     render_cmp: &FC,
 ) -> Option<Vec<message::Component>>
 where
-    FC: Fn(&D) -> FCR + 'static,
-    FCR: Into<Option<Vec<Row<D>>>> + 'static,
+    FC: Fn(&D) -> CompWindow<D>,
 {
-    let Some(vec) = render_cmp(data).into() else {
-        return None;
-    };
-    let vec = vec
+    let comps = render_cmp(data);
+    let vec = comps
+        .children
         .into_iter()
         .enumerate()
         .map(|(i, x)| {
@@ -44,7 +42,7 @@ where
     Some(vec)
 }
 
-pub async fn create<'a, D, FT, FTR, FC, FCR>(
+pub async fn create<'a, D, FT, FTR, FC>(
     dusk: &Dusk,
     interaction: &'a Interaction,
     client: &'a InteractionClient<'a>,
@@ -57,8 +55,7 @@ pub async fn create<'a, D, FT, FTR, FC, FCR>(
 where
     FT: Fn(&D) -> FTR + 'static,
     FTR: Into<Option<String>> + 'static,
-    FC: Fn(&D) -> FCR + 'static,
-    FCR: Into<Option<Vec<Row<D>>>> + 'static,
+    FC: Fn(&D) -> CompWindow<D>,
 {
     let last_text = "".to_string();
 

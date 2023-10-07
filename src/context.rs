@@ -7,19 +7,18 @@ use std::sync::{Arc, Mutex};
 use dashmap::DashMap;
 use twilight_model::gateway::payload::incoming::InteractionCreate;
 
+pub type Callback<D> = Box<
+    dyn Fn(
+            &Box<InteractionCreate>,
+            &Context<D>,
+            D,
+        ) -> Pin<Box<dyn Future<Output = D> + Send + Sync>>
+        + Send
+        + Sync,
+>;
+
 pub struct Context<D> {
-    pub(crate) binding: DashMap<
-        String,
-        Box<
-            dyn Fn(
-                    &Box<InteractionCreate>,
-                    &Context<D>,
-                    D,
-                ) -> Pin<Box<dyn Future<Output = D> + Send + Sync>>
-                + Send
-                + Sync,
-        >,
-    >,
+    pub(crate) binding: DashMap<String, Callback<D>>,
     pub(crate) should_exit: Arc<Mutex<bool>>,
 }
 

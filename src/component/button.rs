@@ -1,13 +1,14 @@
 use std::future::Future;
 use std::pin::Pin;
 
+use rand::distributions::Alphanumeric;
+use rand::Rng;
 use twilight_model::channel::message;
 use twilight_model::channel::message::component::ButtonStyle;
 use twilight_model::channel::message::ReactionType;
 use twilight_model::gateway::payload::incoming::InteractionCreate;
 
-use crate::component::Component;
-use crate::context::{Context, ContextPrefix};
+use crate::context::{Callback, Context, ContextPrefix};
 
 pub struct Button<D> {
     pub id: String,
@@ -16,48 +17,48 @@ pub struct Button<D> {
     pub label: Option<String>,
     pub style: ButtonStyle,
     pub url: Option<String>,
-    pub on_click: Option<
-        Box<
-            dyn Fn(
-                    &Box<InteractionCreate>,
-                    &Context<D>,
-                    D,
-                ) -> Pin<Box<dyn Future<Output = D> + Send + Sync>>
-                + Send
-                + Sync,
-        >,
-    >,
+    pub on_click: Option<Callback<D>>,
 }
 
 impl<D> Button<D> {
-    pub fn new<S: Into<String>>(id: S) -> Self {
+    pub fn new_rand() -> Self {
         Self {
-            id: id.into(),
+            id: rand::thread_rng()
+                .sample_iter(&Alphanumeric)
+                .take(7)
+                .map(char::from)
+                .collect(),
             ..Default::default()
         }
     }
 
-    pub fn with_disabled(mut self, disabled: bool) -> Self {
+    pub fn new<S: Into<String>>(label: S) -> Self {
+        let mut s = Self::new_rand();
+        s.label = Some(label.into());
+        s
+    }
+
+    pub fn disabled(mut self, disabled: bool) -> Self {
         self.disabled = disabled;
         self
     }
 
-    pub fn with_emoji(mut self, emoji: ReactionType) -> Self {
+    pub fn emoji(mut self, emoji: ReactionType) -> Self {
         self.emoji = Some(emoji);
         self
     }
 
-    pub fn with_label(mut self, label: String) -> Self {
+    pub fn label(mut self, label: String) -> Self {
         self.label = Some(label);
         self
     }
 
-    pub fn with_style(mut self, style: ButtonStyle) -> Self {
+    pub fn style(mut self, style: ButtonStyle) -> Self {
         self.style = style;
         self
     }
 
-    pub fn with_url(mut self, url: String) -> Self {
+    pub fn url(mut self, url: String) -> Self {
         self.url = Some(url);
         self
     }
@@ -94,8 +95,8 @@ impl<D> Default for Button<D> {
     }
 }
 
-impl<D> Component<D> for Button<D> {
-    fn build(mut self: Box<Self>, ctx: ContextPrefix<D>) -> message::Component {
+impl<D> Button<D> {
+    pub(crate) fn build(mut self: Self, ctx: ContextPrefix<D>) -> message::Component {
         let id = format!("{}.{}", ctx.prefix, self.id);
         if let Some(on_click) = self.on_click.take() {
             ctx.parent.binding.insert(id.clone(), on_click);
