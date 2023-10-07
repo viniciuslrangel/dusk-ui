@@ -68,9 +68,3 @@ impl<D, const N: usize> Component<D> for RowButton<D, N> {
         })
     }
 }
-
-impl<D, const N: usize> Into<Option<Vec<RowButton<D, N>>>> for RowButton<D, N> {
-    fn into(self) -> Option<Vec<RowButton<D, N>>> {
-        Some(vec![self])
-    }
-}

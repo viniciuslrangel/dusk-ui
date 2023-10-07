@@ -2,14 +2,15 @@ use std::future::Future;
 use std::pin::Pin;
 use std::sync::Arc;
 
-use rand::distributions::Alphanumeric;
-use rand::Rng;
 use twilight_model::channel::message;
 use twilight_model::channel::message::component::ButtonStyle;
 use twilight_model::channel::message::ReactionType;
 use twilight_model::gateway::payload::incoming::InteractionCreate;
 
-use crate::context::{Callback, Context, BuildContextPrefix};
+use rand::distributions::Alphanumeric;
+use rand::Rng;
+
+use crate::context::{BuildContextPrefix, Callback, Context};
 
 pub struct Button<D> {
     pub id: String,
@@ -22,21 +23,21 @@ pub struct Button<D> {
 }
 
 impl<D> Button<D> {
-    pub fn new_rand() -> Self {
+    pub fn new<S: Into<String>>(label: S) -> Self {
         Self {
             id: rand::thread_rng()
                 .sample_iter(&Alphanumeric)
                 .take(7)
                 .map(char::from)
                 .collect(),
+            label: Some(label.into()),
             ..Default::default()
         }
     }
 
-    pub fn new<S: Into<String>>(label: S) -> Self {
-        let mut s = Self::new_rand();
-        s.label = Some(label.into());
-        s
+    pub fn id<S: Into<String>>(mut self, id: S) -> Self {
+        self.id = id.into();
+        self
     }
 
     pub fn disabled(mut self, disabled: bool) -> Self {
@@ -49,8 +50,8 @@ impl<D> Button<D> {
         self
     }
 
-    pub fn label(mut self, label: String) -> Self {
-        self.label = Some(label);
+    pub fn label<S: Into<String>>(mut self, label: S) -> Self {
+        self.label = Some(label.into());
         self
     }
 
@@ -59,8 +60,8 @@ impl<D> Button<D> {
         self
     }
 
-    pub fn url(mut self, url: String) -> Self {
-        self.url = Some(url);
+    pub fn url<S: Into<String>>(mut self, url: S) -> Self {
+        self.url = Some(url.into());
         self
     }
 
