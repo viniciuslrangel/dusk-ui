@@ -4,8 +4,8 @@ use twilight_model::channel::message;
 use twilight_model::channel::message::component::ActionRow;
 
 use crate::component::button::Button;
-use crate::component::{Component, RootComponent};
-use crate::context::ContextPrefix;
+use crate::component::Component;
+use crate::context::BuildContextPrefix;
 
 pub struct RowButton<D, const N: usize = 0> {
     phantom: std::marker::PhantomData<D>,
@@ -57,7 +57,7 @@ row_impl!(3);
 row_impl!(4);
 
 impl<D, const N: usize> Component<D> for RowButton<D, N> {
-    fn build(self: Box<Self>, ctx: ContextPrefix<D>) -> message::Component {
+    fn build(self: Box<Self>, ctx: BuildContextPrefix<D>) -> message::Component {
         message::Component::ActionRow(ActionRow {
             components: self
                 .children
@@ -68,8 +68,6 @@ impl<D, const N: usize> Component<D> for RowButton<D, N> {
         })
     }
 }
-
-impl<D, const N: usize> RootComponent<D> for RowButton<D, N> {}
 
 impl<D, const N: usize> Into<Option<Vec<RowButton<D, N>>>> for RowButton<D, N> {
     fn into(self) -> Option<Vec<RowButton<D, N>>> {

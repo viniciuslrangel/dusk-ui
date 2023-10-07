@@ -1,14 +1,16 @@
+use std::sync::Arc;
+
 use tokio::sync::oneshot;
 use twilight_http::client::InteractionClient;
 use twilight_model::application::interaction::{Interaction, InteractionData};
-use twilight_model::channel::message::MessageFlags;
+use twilight_model::channel::message::{Component, MessageFlags};
 use twilight_model::channel::{message, Message};
 use twilight_model::http::interaction::{
     InteractionResponse, InteractionResponseData, InteractionResponseType,
 };
 
 use crate::component::CompWindow;
-use crate::context::{Context, ContextPrefix};
+use crate::context::{BuildContext, BuildContextPrefix};
 use crate::dusk::Dusk;
 
 fn draw_text<D, FT, FTR>(data: &D, render_text: &FT) -> Option<String>
@@ -20,7 +22,7 @@ where
 }
 
 fn draw_components<D, FC>(
-    ctx: &Context<D>,
+    build_ctx: &BuildContext<D>,
     data: &D,
     render_cmp: &FC,
 ) -> Option<Vec<message::Component>>
@@ -33,8 +35,8 @@ where
         .into_iter()
         .enumerate()
         .map(|(i, x)| {
-            x.build(ContextPrefix {
-                parent: ctx,
+            x.build(BuildContextPrefix {
+                parent: build_ctx,
                 prefix: i.to_string(),
             })
         })
@@ -59,7 +61,8 @@ where
 {
     let last_text = "".to_string();
 
-    let ctx = Context::new();
+    let build_ctx = BuildContext::<D>::new();
+    let ctx = Arc::clone(&build_ctx.ctx);
 
     if !no_defer {
         client
@@ -97,9 +100,15 @@ where
             }
         }
 
-        ctx.binding.clear();
-        let components = draw_components(&ctx, &data, &render_cmp);
-        update = update.components(components.as_deref())?;
+        let mut components: Option<Vec<Component>> = None;
+
+        if !*ctx.dont_update.lock().unwrap() {
+            build_ctx.binding.clear();
+            components = draw_components(&build_ctx, &data, &render_cmp);
+            update = update.components(components.as_deref())?;
+        } else {
+            *ctx.dont_update.lock().unwrap() = false;
+        }
 
         let result = update.await?.model().await?;
         msg = Some(result);
@@ -110,7 +119,7 @@ where
         let interaction = rx.await?;
         if let Some(InteractionData::MessageComponent(interaction_data)) = &interaction.data {
             let custom_id = &interaction_data.custom_id;
-            if let Some(callback) = ctx.binding.get(custom_id) {
+            if let Some(callback) = build_ctx.binding.get(custom_id) {
                 let callback = callback.value();
                 data = callback(&interaction, &ctx, data).await;
             }

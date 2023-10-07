@@ -1,5 +1,6 @@
 use std::future::Future;
 use std::pin::Pin;
+use std::sync::Arc;
 
 use rand::distributions::Alphanumeric;
 use rand::Rng;
@@ -8,7 +9,7 @@ use twilight_model::channel::message::component::ButtonStyle;
 use twilight_model::channel::message::ReactionType;
 use twilight_model::gateway::payload::incoming::InteractionCreate;
 
-use crate::context::{Callback, Context, ContextPrefix};
+use crate::context::{Callback, Context, BuildContextPrefix};
 
 pub struct Button<D> {
     pub id: String,
@@ -67,7 +68,7 @@ impl<D> Button<D> {
         F: 'static
             + Fn(
                 &Box<InteractionCreate>,
-                &Context<D>,
+                &Arc<Context<D>>,
                 D,
             ) -> Pin<Box<dyn Future<Output = D> + Send + Sync>>
             + Send
@@ -96,7 +97,7 @@ impl<D> Default for Button<D> {
 }
 
 impl<D> Button<D> {
-    pub(crate) fn build(mut self: Self, ctx: ContextPrefix<D>) -> message::Component {
+    pub(crate) fn build(mut self: Self, ctx: BuildContextPrefix<D>) -> message::Component {
         let id = format!("{}.{}", ctx.prefix, self.id);
         if let Some(on_click) = self.on_click.take() {
             ctx.parent.binding.insert(id.clone(), on_click);
