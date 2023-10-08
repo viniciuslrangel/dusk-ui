@@ -23,15 +23,21 @@ pub struct Button<D> {
 }
 
 impl<D> Button<D> {
-    pub fn new<S: Into<String>>(label: S) -> Self {
+    pub fn empty() -> Self {
         Self {
             id: rand::thread_rng()
                 .sample_iter(&Alphanumeric)
                 .take(7)
                 .map(char::from)
                 .collect(),
-            label: Some(label.into()),
             ..Default::default()
+        }
+    }
+
+    pub fn new<S: Into<String>>(label: S) -> Self {
+        Self {
+            label: Some(label.into()),
+            ..Self::empty()
         }
     }
 
