@@ -72,7 +72,7 @@ impl<D> SelectMenu<D> {
                 &Box<InteractionCreate>,
                 &Arc<Context<D>>,
                 D,
-            ) -> Pin<Box<dyn Future<Output = D> + Send + Sync>>
+            ) -> Pin<Box<dyn Future<Output = D> + Send>>
             + Send
             + Sync,
     >(

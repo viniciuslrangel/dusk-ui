@@ -8,11 +8,7 @@ use dashmap::DashMap;
 use twilight_model::gateway::payload::incoming::InteractionCreate;
 
 pub type Callback<D> = Box<
-    dyn Fn(
-            &Box<InteractionCreate>,
-            &Arc<Context<D>>,
-            D,
-        ) -> Pin<Box<dyn Future<Output = D> + Send + Sync>>
+    dyn Fn(&Box<InteractionCreate>, &Arc<Context<D>>, D) -> Pin<Box<dyn Future<Output = D> + Send>>
         + Send
         + Sync,
 >;
