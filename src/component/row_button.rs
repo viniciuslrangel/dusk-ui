@@ -26,7 +26,7 @@ macro_rules! row_impl {
         impl<D> RowButton<D, $count> {
             pub(crate) fn push(self, child: Button<D>) -> RowButton<D, { $count + 1 }> {
                 let mut data: [MaybeUninit<Button<D>>; { $count + 1 }] =
-                    MaybeUninit::uninit_array();
+                    unsafe { MaybeUninit::uninit().assume_init() };
                 let mut i = 0;
                 for x in self.children {
                     data[i].write(x);

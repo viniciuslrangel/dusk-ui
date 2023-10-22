@@ -1,6 +1,3 @@
-#![feature(generic_const_exprs)]
-#![feature(maybe_uninit_uninit_array)]
-
 pub use window::create;
 
 pub mod component;
